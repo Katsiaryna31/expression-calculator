@@ -1,69 +1,74 @@
-function eval() {
-    // Do not use eval!!!
-    return;
+var math_it_up = {
+  '+': function (x, y) { return x + y },
+  '-': function (x, y) { return x - y },
+  '/': function (x, y) { return (x / y)},
+  '*': function (x, y) { return (x * y)},
+};
+
+function eval(expression) {
+  while (expression.length > 1){
+    while (expression.includes("/")) {
+      let operator = expression.indexOf("/");
+      if (expression[operator + 1] == 0) {
+        throw "TypeError: Division by zero.";
+      }
+      let result = math_it_up["/"](expression[operator - 1], expression[operator + 1]);
+      expression.splice(operator-1, 3, result);
+    } 
+    while (expression.includes("*")) {
+      let operator = expression.indexOf("*");
+      let result = math_it_up["*"](expression[operator - 1], expression[operator + 1]);
+      expression.splice(operator-1, 3, result);
+    } 
+    while (expression.includes("-")) {
+      let operator = expression.indexOf("-");
+      let result = math_it_up["-"](expression[operator - 1], expression[operator + 1]);
+      expression.splice(operator-1, 3, result);
+    } 
+    while (expression.includes("+")) {
+      let operator = expression.indexOf("+");
+      let result = math_it_up["+"](Number(expression[operator - 1]), Number(expression[operator + 1]));
+      expression.splice(operator-1, 3, result);
+    } 
+  } 
+  return expression.join("");
 }
 
 function expressionCalculator(expr) {
-  var array = expr.split(" ");
-  var expressionsArray = [];
- var numberFirstOperations = 0;
- var numberSecondOperations = 0;
- var numberBrackets = 0;
-  for (var i = 0; i < array.length; i ++) {
-    if (array[i] !== "") {
-     expressionsArray.push(array[i]);
-    }
-    if (array[i] === "/" || array[i] === "*") {
-      numberFirstOperations += 1;
-    }
-    if (array[i] === "+" || array[i] === "-" ) {
-      numberSecondOperations += 1;
-    }
+  let arr = [];
+  if (expr.length === 3) {
+    arr = expr.trim().split("");
+  } else {
+    arr = expr.trim().split(" ");
   }
-var split;
-var result;
-for (var j = 1; j <= numberFirstOperations; j++) {
-  for (var k = 0; k < expressionsArray.length; k++) {
-    if (expressionsArray[k-1] === "*") {
-      result =  Number(expressionsArray[k-2]) * Number(expressionsArray[k]);
-      expressionsArray.splice(k-2, 3, result);
+  let clearArr = [];
+  let bracketsLeft = 0;
+  let bracketsRight = 0;
+  arr.forEach(el => {
+    if (el !== "") {
+      clearArr.push(el);
+      if (el.includes(`((`)) {
+        bracketsLeft = bracketsLeft + 2;
+    } else if (el.includes(`(`)) {
+      bracketsLeft ++;
+    }else if (el.includes(`)`)) {
+      bracketsRight++;
     }
-    if (expressionsArray[k-1] === "/") {
-     result =  Number(expressionsArray[k-2]) / Number(expressionsArray[k]);
-     expressionsArray.splice(k-2, 3, result);
-   }
- }
- for (var k = 0; k < expressionsArray.length; k++) {
-   if (expressionsArray[k-1] === "*") {
-     result =  Number(expressionsArray[k-2]) * Number(expressionsArray[k]);
-     expressionsArray.splice(k-2, 3, result);
-   }
-   if (expressionsArray[k-1] === "/") {
-     result =  Number(expressionsArray[k-2]) / Number(expressionsArray[k]);
-     expressionsArray.splice(k-2, 3, result);
-   }
- }
+    } 
+  })
+if (bracketsLeft !== bracketsRight) {
+  throw "ExpressionError: Brackets must be paired";
 }
-
-for (var m = 1; m <= numberSecondOperations; m++) {
-for (var z = 0; z < expressionsArray.length; z++) {
-  if (expressionsArray[z-1] === "+") {
-     result =  Number(expressionsArray[z-2]) + Number(expressionsArray[z]);
-     expressionsArray.splice(z-2, 3, result);
-
-  }
-  if (expressionsArray[z-1] === "-") {
-     result =  Number(expressionsArray[z-2]) - Number(expressionsArray[z]);
-     expressionsArray.splice(z-2, 3, result);
-
-  }
+while (bracketsLeft > 0) {
+  let beginBracket = clearArr.lastIndexOf("(");
+  let finishBracket = clearArr.indexOf(`)`, beginBracket);
+  let numberOfEl = finishBracket - beginBracket + 1;
+  let resultExpression = clearArr.splice(beginBracket + 1, numberOfEl-2);
+  clearArr.splice(beginBracket, 2, eval(resultExpression));
+  bracketsLeft--;
 }
-}
-var calculation = 0;
-for (var l = 0; l < expressionsArray.length; l ++) {
-  calculation += expressionsArray[l];
-}
-return calculation;
+let result = eval(clearArr);
+  return Number(result);
 }
 
 module.exports = {
